@@ -10,21 +10,25 @@ letras = pickle.load(open('letras.pickle', 'rb'))
 _input = letras
 _expected = letras
 
-learning_rate = 0.1
-momentum = 0.8
+learning_rate = 0.001
+momentum = 0.3
 test_p = 0.1
 
 
 
 nn = MultilayerPerceptron(learning_rate, momentum, act_fun="tanh", deriv_fun="tanh_d", split_data=False, test_p=test_p, use_momentum=True)
 
-nn.entry_layer(7)
-nn.add_hidden_layer(5)
+nn.entry_layer(35)
 nn.add_hidden_layer(3)
+nn.add_hidden_layer(15)
+nn.add_hidden_layer(13)
+nn.add_hidden_layer(5)
 nn.add_hidden_layer(2)
-nn.add_hidden_layer(3)
 nn.add_hidden_layer(5)
-nn.output_layer(7)
+nn.add_hidden_layer(13)
+nn.add_hidden_layer(15)
+nn.add_hidden_layer(3)
+nn.output_layer(35)
 
 error = 1
 error = nn.train(_input, _expected, epochs=500)
