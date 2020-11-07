@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+import pickle
 
 #Analizamos los datos de las letras para decidir una arquitectura de red
 #En este caso, analizamos la primer componente principal y la matriz de covarianza para encontrar cuantas (y cuales) variables contienen mayor información, esto nos podría dar una idea de cuantos nodos deben tener las capas ocultas
@@ -39,6 +40,9 @@ letters=np.vstack((letters,[0x02,0x04,0x08,0x10,0x08,0x04,0x02]))#0x3c: <
 letters=np.vstack((letters,[0x00,0x00,0x1f,0x00,0x1f,0x00,0x00]))#0x3d: =
 letters=np.vstack((letters,[0x08,0x04,0x02,0x01,0x02,0x04,0x08]))#0x3e: >
 letters=np.vstack((letters,[0x0e,0x11,0x01,0x02,0x04,0x00,0x04]))#0x3f: ?
+
+#f = open('letras.pickle', 'wb')
+#pickle.dump(letters, f)
 
 #inicializar
 sc = StandardScaler()

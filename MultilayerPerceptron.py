@@ -13,7 +13,6 @@ def tanh(x):
 def tanh_deriv(x):
     return beta * (1 - math.tanh(x)**2)
 
-#activación no lineal y su derivada
 def logistic(x):
     return 1 / (1 + math.exp(-2 * beta * x))
 
