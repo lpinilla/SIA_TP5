@@ -30,11 +30,8 @@ def arctan_deriv(x):
 
 functions = {
     "tanh": tanh,
-    "tanh_d": tanh_deriv,
     "logistic": logistic,
-    "logistic_d": logistic_deriv,
     "arctan": arctan,
-    "arctan_d": arctan_deriv
 }
 
 deriv_functions = {
@@ -46,7 +43,7 @@ deriv_functions = {
 
 class MultilayerPerceptron:
 
-    def __init__(self, eta=None, momentum=None, act_fun=None, split_data=True, test_p=None, use_momentum=False):
+    def __init__(self, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None, use_momentum=False):
         global layers
         global max_steps
         self.eta = eta
@@ -188,7 +185,7 @@ class MultilayerPerceptron:
                 for j in range(0, len(w[e]) - 1):
                     delta_w = self.eta * l["e"][e] * l_1["v"][j]
                     # actualizar los pesos
-                    l["w"][e][j] += delta_w   + self.use_momentum * self.momentum * l["prev_w"][e][j]
+                    l["w"][e][j] += delta_w + self.use_momentum * self.momentum * l["prev_w"][e][j]
                     l["prev_w"][e][j] = delta_w
                     # actualizar el bias
                     # l["b"][e] += self.eta * l["e"][e]
@@ -206,25 +203,10 @@ class MultilayerPerceptron:
              for i in range(0, len(test_exp))]
         ) / len(test_data)
 
-    def adapt_eta(self, i, err_history, error):
-        if i < 2:
-            err_history.append(error)
-            return 0
-        bigger = all(error >= i for i in err_history)
-        smaller = all(error < i for i in err_history)
-        err_history.append(error)
-        err_history = err_history[1:]
-        if bigger:
-            return - 0.5 * self.eta
-        if smaller:
-            return 0.1
-        return 0
-
     def train(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = \
             self.process_input(inputs, expected)
         error = 1
-        curr_step = 0
         error_min = 1
         err_history = []
         idxs = [i for i in range(0, len(inp_data))]
@@ -235,7 +217,6 @@ class MultilayerPerceptron:
                 idx = order[j]
                 _in = inp_data[idx]
                 _ex = inp_exp[idx]
-                # print("entrada " + str(_in))
                 self.setup_entries(_in)
                 # hacer feed forward
                 self.feed_forward()
@@ -250,7 +231,22 @@ class MultilayerPerceptron:
                 if error < error_min:
                     error_min = error
                 #self.eta += self.adapt_eta(len(idxs) * i + j, err_history, error)
-                # curr_step += 1
             print(error)
         return error
+
+##################### OPTIMIZACIONES ##########################
+
+    def adapt_eta(self, i, err_history, error):
+        if i < 2:
+            err_history.append(error)
+            return 0
+        bigger = all(error >= i for i in err_history)
+        smaller = all(error < i for i in err_history)
+        err_history.append(error)
+        err_history = err_history[1:]
+        if bigger:
+            return - 0.5 * self.eta
+        if smaller:
+            return 0.1
+        return 0
 
