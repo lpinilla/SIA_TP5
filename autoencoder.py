@@ -16,7 +16,7 @@ test_p = 0.1
 
 
 
-nn = MultilayerPerceptron(learning_rate, momentum, act_fun="tanh", deriv_fun="tanh_d", split_data=False, test_p=test_p, use_momentum=True)
+nn = MultilayerPerceptron(learning_rate, momentum, act_fun="logistic", split_data=False, test_p=test_p, use_momentum=True)
 
 nn.entry_layer(35)
 nn.add_hidden_layer(3)

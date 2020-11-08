@@ -37,22 +37,25 @@ functions = {
     "arctan_d": arctan_deriv
 }
 
+deriv_functions = {
+    "tanh": tanh_deriv,
+    "logistic": logistic_deriv,
+    "arctan": arctan_deriv
+}
+
 
 class MultilayerPerceptron:
 
-    def __init__(self, eta=None, momentum=None, act_fun=None, deriv_fun=None, split_data=True, test_p=None, use_momentum=False):
+    def __init__(self, eta=None, momentum=None, act_fun=None, split_data=True, test_p=None, use_momentum=False):
         global layers
         global max_steps
         self.eta = eta
         self.momentum = momentum
         self.act_fun = functions[act_fun]
-        self.deriv_fun = functions[deriv_fun]
+        self.deriv_fun = deriv_functions[act_fun]
         self.test_p = test_p
         self.split_data = split_data
-        if use_momentum:
-            self.use_momentum = 1
-        else:
-            self.use_momentum = 0
+        self.use_momentum = use_momentum * 1
 
     def print_layer(self, i):
         l = layers[i]
@@ -67,7 +70,7 @@ class MultilayerPerceptron:
         for i in range(0, len(layers)):
             self.print_layer(i)
 
-    def create_layer(self, n_of_nodes, fn=None, d_fn=None):
+    def create_layer(self, n_of_nodes, fn=None):
         layer = {
             # pesos de cada nodo o entradas si es la capa inicial
             "w": np.random.randn(n_of_nodes) if not layers \
@@ -86,20 +89,20 @@ class MultilayerPerceptron:
             # función de activación
             "fn": functions[fn] if fn != None else self.act_fun,
             # derivada de la función de activación
-            "deriv": functions[d_fn] if d_fn != None else self.deriv_fun
+            "deriv": deriv_functions[fn] if fn != None else self.deriv_fun
         }
         return layer
 
     def entry_layer(self, n_of_nodes, fn=None, deriv=None):
-        l = self.create_layer(n_of_nodes, fn=fn, d_fn=deriv)
+        l = self.create_layer(n_of_nodes, fn=fn)
         layers.append(l)
 
     def add_hidden_layer(self, n_of_nodes, fn=None, deriv=None):
-        l = self.create_layer(n_of_nodes, fn=fn, d_fn=deriv)
+        l = self.create_layer(n_of_nodes, fn=fn)
         layers.append(l)
 
     def output_layer(self, n_of_nodes, fn=None, deriv=None):
-        l = self.create_layer(n_of_nodes, fn=fn, d_fn=deriv)
+        l = self.create_layer(n_of_nodes, fn=fn)
         layers.append(l)
 
     def setup_entries(self, entries):
