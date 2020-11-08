@@ -27,7 +27,6 @@ def arctan_deriv(x):
     y = arctan(x)
     return 1 / (1 + (y ** 2))
 
-
 functions = {
     "tanh": tanh,
     "logistic": logistic,
@@ -40,10 +39,9 @@ deriv_functions = {
     "arctan": arctan_deriv
 }
 
-
 class MultilayerPerceptron:
 
-    def __init__(self, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None, use_momentum=False):
+    def __init__(self, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None, use_momentum=False, adaptative_eta=False):
         global layers
         global max_steps
         self.eta = eta
@@ -53,6 +51,7 @@ class MultilayerPerceptron:
         self.test_p = test_p
         self.split_data = split_data
         self.use_momentum = use_momentum * 1
+        self.use_adapt_eta = adaptative_eta * 1
 
     def print_layer(self, i):
         l = layers[i]
@@ -60,11 +59,10 @@ class MultilayerPerceptron:
         print(" w: " + str(l["w"]))
         print(" v: " + str(l["v"]))
         print(" h: " + str(l["h"]))
-        print(" b: " + str(l["b"]))
         print(" e: " + str(l["e"]))
 
     def print_layers(self):
-        for i in range(0, len(layers)):
+        for i in range(len(layers)):
             self.print_layer(i)
 
     def create_layer(self, n_of_nodes, fn=None):
@@ -81,8 +79,6 @@ class MultilayerPerceptron:
             "h": np.ones(n_of_nodes),
             # valores de error
             "e": np.ones(n_of_nodes),
-            # valores de bias
-            "b": np.ones(n_of_nodes),
             # función de activación
             "fn": functions[fn] if fn != None else self.act_fun,
             # derivada de la función de activación
@@ -95,7 +91,6 @@ class MultilayerPerceptron:
         for i in range(1, len(arq)-1):
             self.add_hidden_layer(arq[i])
         self.output_layer(arq[-1])
-
 
     def entry_layer(self, n_of_nodes, fn=None, deriv=None):
         l = self.create_layer(n_of_nodes, fn=fn)
@@ -115,7 +110,6 @@ class MultilayerPerceptron:
         entry["w"] = []
         entry["prev_w"] = []
         entry["h"] = []
-        entry["b"] = []
         entry["e"] = []
 
     # agregar un 1 al valor (para el sesgo) y devolver un numpy array
@@ -124,8 +118,6 @@ class MultilayerPerceptron:
         for inp in input_arr:
             # sumar el 1 como input para el sesgo
             input_bias = np.copy(inp)
-            # agregar el 1 para el sesgo
-            # input_bias = np.append(input_bias, 1)
             # convertir en array de numpy
             input_data = np.array(input_bias)
             inputs.append(input_data)
@@ -152,15 +144,13 @@ class MultilayerPerceptron:
         for i in range(1, len(layers)):
             l = layers[i]
             l_1 = layers[i - 1]
-
             inp = np.copy(l_1["v"])
             inp_bias = (np.append(inp, 1))
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
             l["h"] = np.array(h)
             l["v"] = np.array([l["fn"](h[i]) for i in range(len(h))])
-            # l["v"] = np.array( [l["fn"](h[i]) + l["b"][i] for i in range(len(l["h"]))])
 
-    # función que propaga regresivamente el valor de error
+    # función que propaga regresivamente el valor de error e de cada capa
     def back_propagation(self):
         for i in range(len(layers) - 1, 1, -1):
             l = layers[i]
@@ -175,20 +165,19 @@ class MultilayerPerceptron:
                 errors.append(l_1["deriv"](l_1["h"][j]) * np.dot(w_1, l["e"]))
             l_1["e"] = np.array(errors, dtype='double')
 
+    # función que actualiza los pesos de las capas calculando los deltas
     def update_weights(self):
         for i in range(len(layers) - 1, 0, -1):
             l = layers[i]
             l_1 = layers[i - 1]
             w = l["w"]
             delta_w = 0
-            for e in range(0, len(l["e"])):
-                for j in range(0, len(w[e]) - 1):
+            for e in range(len(l["e"])):
+                for j in range(len(w[e]) - 1):
                     delta_w = self.eta * l["e"][e] * l_1["v"][j]
                     # actualizar los pesos
                     l["w"][e][j] += delta_w + self.use_momentum * self.momentum * l["prev_w"][e][j]
                     l["prev_w"][e][j] = delta_w
-                    # actualizar el bias
-                    # l["b"][e] += self.eta * l["e"][e]
 
     # función para calcular el error de la muestra en la última capa
     def calculate_last_layer_error(self, expected):
@@ -200,7 +189,7 @@ class MultilayerPerceptron:
         guesses = [self.guess(i) for i in test_data]
         return np.sum(
             [(np.subtract(test_exp[i], guesses[i]) ** 2).sum() \
-             for i in range(0, len(test_exp))]
+             for i in range(len(test_exp))]
         ) / len(test_data)
 
     def train(self, inputs, expected, epochs):
@@ -209,14 +198,15 @@ class MultilayerPerceptron:
         error = 1
         error_min = 1
         err_history = []
-        idxs = [i for i in range(0, len(inp_data))]
-        for i in range(0, epochs):
+        idxs = [i for i in range(len(inp_data))]
+        for i in range(epochs):
             order = random.sample(idxs, len(idxs))
-            for j in range(0, len(order)):
+            for j in range(len(order)):
                 # agarrar un índice random para agarrar una muestra
                 idx = order[j]
                 _in = inp_data[idx]
                 _ex = inp_exp[idx]
+                # hacer el setup de la entrada
                 self.setup_entries(_in)
                 # hacer feed forward
                 self.feed_forward()
@@ -230,7 +220,8 @@ class MultilayerPerceptron:
                 error = self.calculate_error(test_data, test_exp)
                 if error < error_min:
                     error_min = error
-                #self.eta += self.adapt_eta(len(idxs) * i + j, err_history, error)
+                #actualizar el eta si se configuró así
+                self.eta += self.use_adapt_eta * self.adapt_eta(len(idxs) * i + j, err_history, error)
             print(error)
         return error
 
@@ -240,12 +231,14 @@ class MultilayerPerceptron:
         if i < 2:
             err_history.append(error)
             return 0
-        bigger = all(error >= i for i in err_history)
-        smaller = all(error < i for i in err_history)
+        bigger = all(error >= j for j in err_history)
+        smaller = all(error < j for j in err_history)
+        # agregar el error a la lista
         err_history.append(error)
+        # "desplazar" la ventana de errores, pisar el anterior
         err_history = err_history[1:]
         if bigger:
-            return - 0.5 * self.eta
+            return -0.1 * self.eta
         if smaller:
             return 0.1
         return 0
