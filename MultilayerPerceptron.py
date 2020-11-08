@@ -93,6 +93,13 @@ class MultilayerPerceptron:
         }
         return layer
 
+    def create_arq(self, arq):
+        self.entry_layer(arq[0])
+        for i in range(1, len(arq)-1):
+            self.add_hidden_layer(arq[i])
+        self.output_layer(arq[-1])
+
+
     def entry_layer(self, n_of_nodes, fn=None, deriv=None):
         l = self.create_layer(n_of_nodes, fn=fn)
         layers.append(l)
