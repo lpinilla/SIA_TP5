@@ -78,8 +78,8 @@ class MultilayerPerceptron:
     def create_layer(self, n_of_nodes, fn=None):
         layer = {
             # pesos de cada nodo o entradas si es la capa inicial
-            "w": [np.random.randn(n_of_nodes)] if not layers \
-                else [np.random.randn(len(layers[-1]["v"]) + 1) for i in range(n_of_nodes)],
+            "w": [np.random.uniform(-1, 1, n_of_nodes)]  if not layers \
+                else [np.random.uniform(-1, 1, len(layers[-1]["v"]) + 1)  for i in range(n_of_nodes)],
             # pesos anteriores, para usar momentum
             "prev_w": np.zeros(n_of_nodes) if not layers \
                 else [np.zeros(len(layers[-1]["v"]) + 1) for i in range(n_of_nodes)],
