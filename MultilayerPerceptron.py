@@ -27,16 +27,24 @@ def arctan_deriv(x):
     y = arctan(x)
     return 1 / (1 + (y ** 2))
 
+def relu(x):
+    return max(0, x)
+
+def relu_deriv(x):
+    return 1 if x > 0 else 0
+
 functions = {
     "tanh": tanh,
     "logistic": logistic,
     "arctan": arctan,
+    "relu": relu
 }
 
 deriv_functions = {
     "tanh": tanh_deriv,
     "logistic": logistic_deriv,
-    "arctan": arctan_deriv
+    "arctan": arctan_deriv,
+    "relu": relu_deriv
 }
 
 class MultilayerPerceptron:
@@ -60,6 +68,8 @@ class MultilayerPerceptron:
         print(" v: " + str(l["v"]))
         print(" h: " + str(l["h"]))
         print(" e: " + str(l["e"]))
+        print("n of nodes: ", str(len(l["v"])))
+        print("n of weights: ", str(len(l["w"])), "x", str(len(l["w"][0])))
 
     def print_layers(self):
         for i in range(len(layers)):
@@ -68,7 +78,7 @@ class MultilayerPerceptron:
     def create_layer(self, n_of_nodes, fn=None):
         layer = {
             # pesos de cada nodo o entradas si es la capa inicial
-            "w": np.random.randn(n_of_nodes) if not layers \
+            "w": [np.random.randn(n_of_nodes)] if not layers \
                 else [np.random.randn(len(layers[-1]["v"]) + 1) for i in range(n_of_nodes)],
             # pesos anteriores, para usar momentum
             "prev_w": np.zeros(n_of_nodes) if not layers \
@@ -107,29 +117,29 @@ class MultilayerPerceptron:
     def setup_entries(self, entries):
         entry = layers[0]
         entry["v"] = entries
-        entry["w"] = []
+        entry["w"] = [[None] * len(entries)]
         entry["prev_w"] = []
         entry["h"] = []
         entry["e"] = []
 
     # agregar un 1 al valor (para el sesgo) y devolver un numpy array
     def process_input(self, input_arr, expected_arr):
-        inputs = []
-        for inp in input_arr:
-            # sumar el 1 como input para el sesgo
-            input_bias = np.copy(inp)
-            # convertir en array de numpy
-            input_data = np.array(input_bias)
-            inputs.append(input_data)
+        #inputs = []
+        #for inp in input_arr:
+        #    # sumar el 1 como input para el sesgo
+        #    #input_bias = np.copy(inp)
+        #    # convertir en array de numpy
+        #    input_data = np.array(inp)
+        #    inputs.append(input_data)
         # si se seteo, partir el dataset en input y test data
         # en base al % introducido
         if self.split_data:
             split_idx = int(len(input_arr) * (1 - self.test_p))
-            return np.array(inputs[:split_idx]), \
+            return np.array(input_arr[:split_idx]), \
                    expected_arr[:split_idx], \
-                   np.array(inputs[split_idx:]), \
+                   np.array(input_arr[split_idx:]), \
                    expected_arr[split_idx:]
-        return np.array(inputs), expected_arr, np.array(inputs), expected_arr
+        return np.array(input_arr), expected_arr, np.array(input_arr), expected_arr
 
     def predict(self, _input):
         return self.guess(np.array(_input))
@@ -143,7 +153,7 @@ class MultilayerPerceptron:
     def feed_forward(self):
         for i in range(1, len(layers)):
             l = layers[i]
-            l_1 = layers[i - 1]
+            l_1 = layers[i-1]
             inp = np.copy(l_1["v"])
             inp_bias = (np.append(inp, 1))
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
@@ -154,16 +164,22 @@ class MultilayerPerceptron:
     def back_propagation(self):
         for i in range(len(layers) - 1, 1, -1):
             l = layers[i]
-            l_1 = layers[i - 1]
-            errors = []
-            # calculamos los nuevos errores en base a los de la capa superior
+            l_1 = layers[i-1]
             for j in range(len(l_1["e"])):
-                # agarrar todas las conexiones del nodo j con la capa superior
-                w_1 = np.array([l["w"][k][j] for k in range(len(l["w"]))])
-                # agregar a la lista de errores el nuevo error del nodo j de
-                # la capa i - 1
-                errors.append(l_1["deriv"](l_1["h"][j]) * np.dot(w_1, l["e"]))
-            l_1["e"] = np.array(errors, dtype='double')
+                aux = 0
+                for k in range(len(l["e"])):
+                    aux += l["w"][k][j] * l["e"][k]
+                l_1["e"][j] = l_1["deriv"](l_1["h"][j]) * aux
+
+            #errors = []
+            ## calculamos los nuevos errores en base a los de la capa superior
+            #for j in range(len(l_1["e"])):
+            #    # agarrar todas las conexiones del nodo j con la capa superior
+            #    w_1 = np.array([l["w"][k][j] for k in range(len(l["w"]))])
+            #    # agregar a la lista de errores el nuevo error del nodo j de
+            #    # la capa i - 1
+            #    errors.append(l_1["deriv"](l_1["h"][j]) * np.dot(w_1, l["e"]))
+            #l_1["e"] = np.array(errors)
 
     # función que actualiza los pesos de las capas calculando los deltas
     def update_weights(self):
@@ -182,8 +198,8 @@ class MultilayerPerceptron:
     # función para calcular el error de la muestra en la última capa
     def calculate_last_layer_error(self, expected):
         l = layers[-1]
-        aux = np.sum(expected - l["v"])
-        l["e"] = np.array([l["deriv"](l["h"][i]) * aux for i in range(len(l["e"]))])
+        aux = expected - l["v"]
+        l["e"] = np.array([l["deriv"](l["h"][i]) * aux[i] for i in range(len(l["e"]))])
 
     def calculate_error(self, test_data, test_exp):
         guesses = [self.guess(i) for i in test_data]
@@ -193,8 +209,11 @@ class MultilayerPerceptron:
         ) / len(test_data)
 
     def train(self, inputs, expected, epochs):
-        inp_data, inp_exp, test_data, test_exp = \
-            self.process_input(inputs, expected)
+        inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
+        #TESTEANDO
+        #self.print_layers()
+        #print(inp_data)
+        #exit(0)
         error = 1
         error_min = 1
         err_history = []
@@ -226,6 +245,29 @@ class MultilayerPerceptron:
         return error
 
 ##################### OPTIMIZACIONES ##########################
+
+    # función que actualiza los pesos de las capas calculando los deltas
+    # esta variante copia los pesos de la parte decodificadora hacia la codificadora. NOTA: esta función asume que no hay bias
+    def update_weights_autoencoder(self):
+        #vamos desde la decodificadora hasta la latente
+        for i in range(len(layers) - 1, int(len(layers)/2), -1):
+            l = layers[i]
+            l_1 = layers[i - 1]
+            w = l["w"]
+            delta_w = 0
+            for e in range(len(l["e"])):
+                for j in range(len(w[e]) - 1):
+                    delta_w = self.eta * l["e"][e] * l_1["v"][j]
+                    # actualizar los pesos
+                    l["w"][e][j] += delta_w + self.use_momentum * self.momentum * l["prev_w"][e][j]
+                    l["prev_w"][e][j] = delta_w
+        #copiamos los pesos de la decodificadora transpuesta a la codificacion
+        for i in range(1, int(len(l)/2)):
+            l = layers[i]
+            l_1 = layers[len(layers)-i]
+            l["prev_w"] = l["w"]
+            l["w"] = np.array(l_1["w"]).T
+
 
     def adapt_eta(self, i, err_history, error):
         if i < 2:

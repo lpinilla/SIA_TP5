@@ -53,7 +53,7 @@ print(v / sum_autovalores)
 # Las primeras 3 variables son las más relevantes -> última capa de codificación de 3 nodos?
 # Hay 4 "niveles" de importancia, -01, -02, 0-3/4, >-10 -> 4 capas ocultas?
 
-# 1era capa: 5 nodos
+# 1era capa: 4 nodos
 # 2da capa: 13
 # 3era capa: 15 nodos
 # 4ta capa: 3 nodos

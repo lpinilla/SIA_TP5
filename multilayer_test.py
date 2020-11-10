@@ -43,9 +43,7 @@ nn.entry_layer(2)
 nn.add_hidden_layer(5)
 nn.output_layer(1)
 
-error = 1
-#while error > 0.001:
-error = nn.train(_input, _expected, epochs=500)
+error = nn.train(_input, _expected, epochs=700)
 #print(error)
 
 for i in range(0, len(_input)):
