@@ -75,11 +75,18 @@ class MultilayerPerceptron:
         for i in range(len(layers)):
             self.print_layer(i)
 
-    def create_layer(self, n_of_nodes, fn=None):
+    def create_layer(self, n_of_nodes, fn=None, weights=None):
+        if weights == None:
+            size = n_of_nodes if not layers else layers[-1]["v"]
+            if not layers:
+                w = [np.random.uniform(-1, 1, n_of_nodes)]
+            else:
+                w = [np.random.uniform(-1, 1, len(layers[-1]["v"]) + 1)  for i in range(n_of_nodes)]
+        else:
+            w = weights
         layer = {
             # pesos de cada nodo o entradas si es la capa inicial
-            "w": [np.random.uniform(-1, 1, n_of_nodes)]  if not layers \
-                else [np.random.uniform(-1, 1, len(layers[-1]["v"]) + 1)  for i in range(n_of_nodes)],
+            "w": w,
             # pesos anteriores, para usar momentum
             "prev_w": np.zeros(n_of_nodes) if not layers \
                 else [np.zeros(len(layers[-1]["v"]) + 1) for i in range(n_of_nodes)],
@@ -102,15 +109,15 @@ class MultilayerPerceptron:
             self.add_hidden_layer(arq[i])
         self.output_layer(arq[-1])
 
-    def entry_layer(self, n_of_nodes, fn=None, deriv=None):
+    def entry_layer(self, n_of_nodes, fn=None):
         l = self.create_layer(n_of_nodes, fn=fn)
         layers.append(l)
 
-    def add_hidden_layer(self, n_of_nodes, fn=None, deriv=None):
-        l = self.create_layer(n_of_nodes, fn=fn)
+    def add_hidden_layer(self, n_of_nodes, fn=None, weights=None):
+        l = self.create_layer(n_of_nodes, fn=fn, weights=weights)
         layers.append(l)
 
-    def output_layer(self, n_of_nodes, fn=None, deriv=None):
+    def output_layer(self, n_of_nodes, fn=None):
         l = self.create_layer(n_of_nodes, fn=fn)
         layers.append(l)
 
@@ -124,13 +131,6 @@ class MultilayerPerceptron:
 
     # agregar un 1 al valor (para el sesgo) y devolver un numpy array
     def process_input(self, input_arr, expected_arr):
-        #inputs = []
-        #for inp in input_arr:
-        #    # sumar el 1 como input para el sesgo
-        #    #input_bias = np.copy(inp)
-        #    # convertir en array de numpy
-        #    input_data = np.array(inp)
-        #    inputs.append(input_data)
         # si se seteo, partir el dataset en input y test data
         # en base al % introducido
         if self.split_data:
@@ -165,21 +165,12 @@ class MultilayerPerceptron:
         for i in range(len(layers) - 1, 1, -1):
             l = layers[i]
             l_1 = layers[i-1]
+            ## calculamos los nuevos errores en base a los de la capa superior
             for j in range(len(l_1["e"])):
                 aux = 0
                 for k in range(len(l["e"])):
                     aux += l["w"][k][j] * l["e"][k]
                 l_1["e"][j] = l_1["deriv"](l_1["h"][j]) * aux
-
-            #errors = []
-            ## calculamos los nuevos errores en base a los de la capa superior
-            #for j in range(len(l_1["e"])):
-            #    # agarrar todas las conexiones del nodo j con la capa superior
-            #    w_1 = np.array([l["w"][k][j] for k in range(len(l["w"]))])
-            #    # agregar a la lista de errores el nuevo error del nodo j de
-            #    # la capa i - 1
-            #    errors.append(l_1["deriv"](l_1["h"][j]) * np.dot(w_1, l["e"]))
-            #l_1["e"] = np.array(errors)
 
     # función que actualiza los pesos de las capas calculando los deltas
     def update_weights(self):
@@ -210,10 +201,6 @@ class MultilayerPerceptron:
 
     def train(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
-        #TESTEANDO
-        #self.print_layers()
-        #print(inp_data)
-        #exit(0)
         error = 1
         error_min = 1
         err_history = []
