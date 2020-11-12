@@ -276,7 +276,7 @@ class MultilayerPerceptron:
             print(error)
         return error
 
-    def my_flaten(self, matrix):
+    def flatten_weights(self, matrix):
         arr = np.array(matrix[0])
         for i in range(1, len(matrix)-1):
             arr = np.append(arr, matrix[i])
