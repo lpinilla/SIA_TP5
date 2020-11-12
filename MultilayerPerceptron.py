@@ -1,36 +1,37 @@
 import random
 import math
 import numpy as np
+from scipy.optimize import minimize
 
 layers = []
 max_steps = 1000
 
-beta = 0.5
+#beta = 0.5
 
-def tanh(x):
+def tanh(x, beta):
     return math.tanh(beta * x)
 
-def tanh_deriv(x):
+def tanh_deriv(x, beta):
     return beta * (1 - math.tanh(x)**2)
 
-def logistic(x):
+def logistic(x, beta):
     return 1 / (1 + math.exp(-2 * beta * x))
 
-def logistic_deriv(x):
-    act = logistic(x)
+def logistic_deriv(x, beta):
+    act = logistic(x, beta)
     return 2 * beta * act * (1 - act)
 
-def arctan(x):
+def arctan(x, beta):
     return math.atan(x)
 
-def arctan_deriv(x):
-    y = arctan(x)
+def arctan_deriv(x, beta):
+    y = arctan(x, beta)
     return 1 / (1 + (y ** 2))
 
-def relu(x):
+def relu(x, beta):
     return max(0, x)
 
-def relu_deriv(x):
+def relu_deriv(x, beta):
     return 1 if x > 0 else 0
 
 functions = {
@@ -75,7 +76,7 @@ class MultilayerPerceptron:
         for i in range(len(layers)):
             self.print_layer(i)
 
-    def create_layer(self, n_of_nodes, fn=None, weights=None):
+    def create_layer(self, n_of_nodes, fn=None, weights=None, beta=0.5):
         if weights == None:
             size = n_of_nodes if not layers else layers[-1]["v"]
             if not layers:
@@ -99,7 +100,9 @@ class MultilayerPerceptron:
             # función de activación
             "fn": functions[fn] if fn != None else self.act_fun,
             # derivada de la función de activación
-            "deriv": deriv_functions[fn] if fn != None else self.deriv_fun
+            "deriv": deriv_functions[fn] if fn != None else self.deriv_fun,
+            #el valor de beta para cada capa
+            "beta": beta
         }
         return layer
 
@@ -109,16 +112,16 @@ class MultilayerPerceptron:
             self.add_hidden_layer(arq[i])
         self.output_layer(arq[-1])
 
-    def entry_layer(self, n_of_nodes, fn=None):
-        l = self.create_layer(n_of_nodes, fn=fn)
+    def entry_layer(self, n_of_nodes, fn=None, beta=0.5):
+        l = self.create_layer(n_of_nodes, fn=fn, beta=beta)
         layers.append(l)
 
-    def add_hidden_layer(self, n_of_nodes, fn=None, weights=None):
-        l = self.create_layer(n_of_nodes, fn=fn, weights=weights)
+    def add_hidden_layer(self, n_of_nodes, fn=None, weights=None, beta=0.5):
+        l = self.create_layer(n_of_nodes, fn=fn, weights=weights, beta=beta)
         layers.append(l)
 
-    def output_layer(self, n_of_nodes, fn=None):
-        l = self.create_layer(n_of_nodes, fn=fn)
+    def output_layer(self, n_of_nodes, fn=None, beta=0.5):
+        l = self.create_layer(n_of_nodes, fn=fn, beta=beta)
         layers.append(l)
 
     def setup_entries(self, entries):
@@ -128,6 +131,7 @@ class MultilayerPerceptron:
         entry["prev_w"] = []
         entry["h"] = []
         entry["e"] = []
+        entry["b"] = []
 
     # agregar un 1 al valor (para el sesgo) y devolver un numpy array
     def process_input(self, input_arr, expected_arr):
@@ -158,7 +162,7 @@ class MultilayerPerceptron:
             inp_bias = (np.append(inp, 1))
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
             l["h"] = np.array(h)
-            l["v"] = np.array([l["fn"](h[i]) for i in range(len(h))])
+            l["v"] = np.array([l["fn"](h[i], l["beta"]) for i in range(len(h))])
 
     # función que propaga regresivamente el valor de error e de cada capa
     def back_propagation(self):
@@ -170,7 +174,7 @@ class MultilayerPerceptron:
                 aux = 0
                 for k in range(len(l["e"])):
                     aux += l["w"][k][j] * l["e"][k]
-                l_1["e"][j] = l_1["deriv"](l_1["h"][j]) * aux
+                l_1["e"][j] = l_1["deriv"](l_1["h"][j], l_1["beta"]) * aux
 
     # función que actualiza los pesos de las capas calculando los deltas
     def update_weights(self):
@@ -190,7 +194,7 @@ class MultilayerPerceptron:
     def calculate_last_layer_error(self, expected):
         l = layers[-1]
         aux = expected - l["v"]
-        l["e"] = np.array([l["deriv"](l["h"][i]) * aux[i] for i in range(len(l["e"]))])
+        l["e"] = np.array([l["deriv"](l["h"][i], l["beta"]) * aux[i] for i in range(len(l["e"]))])
 
     def calculate_error(self, test_data, test_exp):
         guesses = [self.guess(i) for i in test_data]
@@ -233,28 +237,61 @@ class MultilayerPerceptron:
 
 ##################### OPTIMIZACIONES ##########################
 
-    # función que actualiza los pesos de las capas calculando los deltas
-    # esta variante copia los pesos de la parte decodificadora hacia la codificadora. NOTA: esta función asume que no hay bias
-    def update_weights_autoencoder(self):
-        #vamos desde la decodificadora hasta la latente
-        for i in range(len(layers) - 1, int(len(layers)/2), -1):
-            l = layers[i]
-            l_1 = layers[i - 1]
-            w = l["w"]
-            delta_w = 0
-            for e in range(len(l["e"])):
-                for j in range(len(w[e]) - 1):
-                    delta_w = self.eta * l["e"][e] * l_1["v"][j]
-                    # actualizar los pesos
-                    l["w"][e][j] += delta_w + self.use_momentum * self.momentum * l["prev_w"][e][j]
-                    l["prev_w"][e][j] = delta_w
-        #copiamos los pesos de la decodificadora transpuesta a la codificacion
-        for i in range(1, int(len(l)/2)):
-            l = layers[i]
-            l_1 = layers[len(layers)-i]
-            l["prev_w"] = l["w"]
-            l["w"] = np.array(l_1["w"]).T
+    def train_minimizer(self, inputs, expected, epochs):
+        inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
+        error = 1
+        error_min = 1
+        err_history = []
+        idxs = [i for i in range(len(inp_data))]
 
+        flattened_weights = self.flatten_weights(self.weights)
+        res = minimize(self.cost, flattened_weights, method=self.optimizer)
+        error = res.fun
+        self.weights = self.unflatten_weights(res.x)
+
+
+        for i in range(epochs):
+            order = random.sample(idxs, len(idxs))
+            for j in range(len(order)):
+                # agarrar un índice random para agarrar una muestra
+                idx = order[j]
+                _in = inp_data[idx]
+                _ex = inp_exp[idx]
+                # hacer el setup de la entrada
+                self.setup_entries(_in)
+                # hacer feed forward
+                self.feed_forward()
+                # calcular el delta error de la última capa
+                self.calculate_last_layer_error(_ex)
+                # retropropagar el error hacia las demás capas
+                self.back_propagation()
+                # ajustar los pesos
+                self.update_weights()
+                # calcular el error
+                error = self.calculate_error(test_data, test_exp)
+                if error < error_min:
+                    error_min = error
+                #actualizar el eta si se configuró así
+                self.eta += self.use_adapt_eta * self.adapt_eta(len(idxs) * i + j, err_history, error)
+            print(error)
+        return error
+
+
+    def flatten_weights(self, unflat_weights):
+        flat_weights = unflat_weights[0].flatten()
+        for i in range(1, len(unflat_weights)):
+            flat_weights = np.concatenate((flat_weights, unflat_weights[i].flatten()))
+        return flat_weights
+
+    def unflatten_weights(self, flat_weights):
+        unflat_weights = [None] * (len(self.weights))
+        index = 0
+        for i in range(len(self.weights)):
+            layer_shape = self.weights[i].shape
+            layer_items = layer_shape[0] * layer_shape[1]
+            unflat_weights[i] = flat_weights[index:index+layer_items].reshape(layer_shape)
+            index += layer_items
+        return unflat_weights
 
     def adapt_eta(self, i, err_history, error):
         if i < 2:
