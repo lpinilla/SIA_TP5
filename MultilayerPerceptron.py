@@ -247,42 +247,21 @@ class MultilayerPerceptron:
 
     ##################### OPTIMIZACIONES ##########################
 
-
-    def cost(self, test_data, test_exp):
-        guesses = [self.guess(i) for i in test_data]
-        return np.sum(
-            [(np.subtract(test_exp[i], guesses[i]) ** 2).sum() \
-             for i in range(len(test_exp))]
-        ) / len(test_data)
+    def cost(self, flat_weights, test_data, test_exp):
+        self.unflatten_weights(flat_weights)
+        return calculate_error(test_data, test_exp)
 
     def train_minimizer(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
         flattened_weights = self.flatten_weights()
-        res = minimize(self.cost, flattened_weights, method=self.optimizer)
-        print(res.fun)
-        exit(0)
+        res = minimize(fun=self.cost, x0=flattened_weights, args=(test_data, test_exp), method=self.optimizer)
         #error = res.fun
         #self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
-
-<<<<<<< HEAD
-        #return error
-||||||| 2edf222
-        print(self.optimizer)
-
-
-        res = minimize(self.calculate_error(test_data, test_exp), flattened_weights, method=self.optimizer)
-        error = res.fun
-        self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
-        return error
-=======
-        print(self.optimizer)
+        #print(self.optimizer)
         res = minimize(self.calculate_error(test_data, test_exp), flattened_weights, method=self.optimizer)
         error = res.fun
         self.weights = self.unflatten_weights(res.x)
         return error
->>>>>>> 8ae622ea6aa88766ae1906f834cf6ec983045b98
-
-
 
     def flatten_weights(self):
         all_weights = self.flatten_matrix(layers[0]["w"])
@@ -297,15 +276,13 @@ class MultilayerPerceptron:
             arr = np.append(arr, matrix[i])
         return arr
 
-
-
     def unflatten_weights(self, flat_weights):
         unflat_weights = []
         aux = np.array([])
         index = 0
         index_base = 0
         for elem in flat_weights:
-            if index % (len(flat_weights) / layer[index_base]["w"]) == 0:
+            if index % (len(flat_weights) / layers[index_base]["w"]) == 0:
                 if len(unflat_weights) != 0:
                     aux = np.array([])
                 else:
