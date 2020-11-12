@@ -7,8 +7,6 @@ layers = []
 max_steps = 1000
 
 
-# beta = 0.5
-
 def tanh(x, beta):
     return math.tanh(beta * x)
 
@@ -249,18 +247,24 @@ class MultilayerPerceptron:
 
     ##################### OPTIMIZACIONES ##########################
 
+
+    def cost(self, test_data, test_exp):
+        guesses = [self.guess(i) for i in test_data]
+        return np.sum(
+            [(np.subtract(test_exp[i], guesses[i]) ** 2).sum() \
+             for i in range(len(test_exp))]
+        ) / len(test_data)
+
     def train_minimizer(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
-
         flattened_weights = self.flatten_weights()
+        res = minimize(self.cost, flattened_weights, method=self.optimizer)
+        print(res.fun)
+        exit(0)
+        #error = res.fun
+        #self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
 
-        print(self.optimizer)
-
-
-        res = minimize(self.calculate_error(test_data, test_exp), flattened_weights, method=self.optimizer)
-        error = res.fun
-        self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
-        return error
+        #return error
 
 
 
@@ -268,8 +272,7 @@ class MultilayerPerceptron:
         all_weights = self.flatten_matrix(layers[0]["w"])
         for i in range(1, len(layers) - 1):
             all_weights = np.append(all_weights, self.flatten_matrix(layers[i]["w"]))
-        print("Final ------> " + str(all_weights))
-
+        #print("Final ------> " + str(all_weights))
         return all_weights
 
     def flatten_matrix(self, matrix):
