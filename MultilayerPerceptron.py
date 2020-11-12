@@ -264,7 +264,23 @@ class MultilayerPerceptron:
         #error = res.fun
         #self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
 
+<<<<<<< HEAD
         #return error
+||||||| 2edf222
+        print(self.optimizer)
+
+
+        res = minimize(self.calculate_error(test_data, test_exp), flattened_weights, method=self.optimizer)
+        error = res.fun
+        self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
+        return error
+=======
+        print(self.optimizer)
+        res = minimize(self.calculate_error(test_data, test_exp), flattened_weights, method=self.optimizer)
+        error = res.fun
+        self.weights = self.unflatten_weights(res.x)
+        return error
+>>>>>>> 8ae622ea6aa88766ae1906f834cf6ec983045b98
 
 
 
@@ -281,17 +297,20 @@ class MultilayerPerceptron:
             arr = np.append(arr, matrix[i])
         return arr
 
-    def unflatten_weights(self, flat_weights, weights_len):
+
+
+    def unflatten_weights(self, flat_weights):
         unflat_weights = []
-        elems = len(flat_weights) / weights_len
         aux = np.array([])
         index = 0
+        index_base = 0
         for elem in flat_weights:
-            if index % elems == 0:
+            if index % (len(flat_weights) / layer[index_base]["w"]) == 0:
                 if len(unflat_weights) != 0:
                     aux = np.array([])
                 else:
                     unflat_weights.append(np.flipud(aux))
+                    index_base += 1
             else:
                 np.insert(aux, elem)
             index += 1
