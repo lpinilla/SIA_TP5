@@ -279,21 +279,17 @@ class MultilayerPerceptron:
 
 
     def unflatten_weights(self, flat_weights):
-        unflat_weights = []
         aux = np.array([])
         index = 0
         index_base = 0
         for elem in flat_weights:
-            if index % (len(flat_weights) / layer[index_base]["w"]) == 0:
-                if len(unflat_weights) != 0:
-                    aux = np.array([])
-                else:
-                    unflat_weights.append(np.flipud(aux))
+            if index % (len(flat_weights) / len(layer[index_base]["w"])) == 0:
+                    layer[index_base]["w"] = np.flipud(aux)
                     index_base += 1
+                    aux = np.array([])
             else:
                 np.insert(aux, elem)
             index += 1
-        return unflat_weights
 
     # def unflatten_weights(self, flat_weights):
     #     unflat_weights = [None] * (len(self.weights))
