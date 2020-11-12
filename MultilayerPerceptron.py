@@ -6,33 +6,42 @@ from scipy.optimize import minimize
 layers = []
 max_steps = 1000
 
-#beta = 0.5
+
+# beta = 0.5
 
 def tanh(x, beta):
     return math.tanh(beta * x)
 
+
 def tanh_deriv(x, beta):
-    return beta * (1 - math.tanh(x)**2)
+    return beta * (1 - math.tanh(x) ** 2)
+
 
 def logistic(x, beta):
     return 1 / (1 + math.exp(-2 * beta * x))
+
 
 def logistic_deriv(x, beta):
     act = logistic(x, beta)
     return 2 * beta * act * (1 - act)
 
+
 def arctan(x, beta):
     return math.atan(x)
+
 
 def arctan_deriv(x, beta):
     y = arctan(x, beta)
     return 1 / (1 + (y ** 2))
 
+
 def relu(x, beta):
     return max(0, x)
 
+
 def relu_deriv(x, beta):
     return 1 if x > 0 else 0
+
 
 functions = {
     "tanh": tanh,
@@ -48,11 +57,14 @@ deriv_functions = {
     "relu": relu_deriv
 }
 
+
 class MultilayerPerceptron:
 
-    def __init__(self, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None, use_momentum=False, adaptative_eta=False):
+    def __init__(self, optimizer=None, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None,
+                 use_momentum=False, adaptative_eta=False):
         global layers
         global max_steps
+        self.optimizer = optimizer
         self.eta = eta
         self.momentum = momentum
         self.act_fun = functions[act_fun]
@@ -66,9 +78,9 @@ class MultilayerPerceptron:
         l = layers[i]
         print("i: " + str(i))
         print(" w: " + str(l["w"]))
-        #print(" v: " + str(l["v"]))
-        #print(" h: " + str(l["h"]))
-        #print(" e: " + str(l["e"]))
+        # print(" v: " + str(l["v"]))
+        # print(" h: " + str(l["h"]))
+        # print(" e: " + str(l["e"]))
         print("n of nodes: ", str(len(l["v"])))
         print("n of weights: ", str(len(l["w"])), "x", str(len(l["w"][0])))
 
@@ -82,7 +94,7 @@ class MultilayerPerceptron:
             if not layers:
                 w = [np.random.uniform(-1, 1, n_of_nodes)]
             else:
-                w = [np.random.uniform(-1, 1, len(layers[-1]["v"]) + 1)  for i in range(n_of_nodes)]
+                w = [np.random.uniform(-1, 1, len(layers[-1]["v"]) + 1) for i in range(n_of_nodes)]
         else:
             w = weights
         layer = {
@@ -101,14 +113,14 @@ class MultilayerPerceptron:
             "fn": functions[fn] if fn != None else self.act_fun,
             # derivada de la función de activación
             "deriv": deriv_functions[fn] if fn != None else self.deriv_fun,
-            #el valor de beta para cada capa
+            # el valor de beta para cada capa
             "beta": beta
         }
         return layer
 
     def create_arq(self, arq):
         self.entry_layer(arq[0])
-        for i in range(1, len(arq)-1):
+        for i in range(1, len(arq) - 1):
             self.add_hidden_layer(arq[i])
         self.output_layer(arq[-1])
 
@@ -157,7 +169,7 @@ class MultilayerPerceptron:
     def feed_forward(self):
         for i in range(1, len(layers)):
             l = layers[i]
-            l_1 = layers[i-1]
+            l_1 = layers[i - 1]
             inp = np.copy(l_1["v"])
             inp_bias = (np.append(inp, 1))
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
@@ -168,7 +180,7 @@ class MultilayerPerceptron:
     def back_propagation(self):
         for i in range(len(layers) - 1, 1, -1):
             l = layers[i]
-            l_1 = layers[i-1]
+            l_1 = layers[i - 1]
             ## calculamos los nuevos errores en base a los de la capa superior
             for j in range(len(l_1["e"])):
                 aux = 0
@@ -230,34 +242,42 @@ class MultilayerPerceptron:
                 error = self.calculate_error(test_data, test_exp)
                 if error < error_min:
                     error_min = error
-                #actualizar el eta si se configuró así
+                # actualizar el eta si se configuró así
                 self.eta += self.use_adapt_eta * self.adapt_eta(len(idxs) * i + j, err_history, error)
             print(error)
         return error
 
-##################### OPTIMIZACIONES ##########################
+    ##################### OPTIMIZACIONES ##########################
 
     def train_minimizer(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
 
-        flattened_weights = self.flatten_weights(self.weights)
-        res = minimize(self.cost, flattened_weights, method=self.optimizer)
+        flattened_weights = self.flatten_weights()
+
+        print(self.optimizer)
+
+
+        res = minimize(self.calculate_error(test_data, test_exp), flattened_weights, method=self.optimizer)
         error = res.fun
-        self.weights = self.unflatten_weights(res.x,len(self.weights))
+        self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
         return error
+
+
 
     def flatten_weights(self):
         all_weights = self.flatten_matrix(layers[0]["w"])
-        for i in range(1, len(layers)-1):
+        for i in range(1, len(layers) - 1):
             all_weights = np.append(all_weights, self.flatten_matrix(layers[i]["w"]))
+        print("Final ------> " + str(all_weights))
+
         return all_weights
 
     def flatten_matrix(self, matrix):
         arr = np.array(matrix[0])
-        for i in range(1, len(matrix)-1):
+        for i in range(1, len(matrix) - 1):
             arr = np.append(arr, matrix[i])
         return arr
-    
+
     def unflatten_weights(self, flat_weights, weights_len):
         unflat_weights = []
         elems = len(flat_weights) / weights_len
@@ -299,4 +319,3 @@ class MultilayerPerceptron:
         if smaller:
             return 0.1
         return 0
-

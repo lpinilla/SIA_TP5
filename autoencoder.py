@@ -17,7 +17,7 @@ letras = pickle.load(open('resources/letras.pickle', 'rb'))
 _input = letras[1:15]
 _expected = letras[1:15]
 
-nn = MultilayerPerceptron(eta=0.1, momentum=0.9, act_fun="logistic", split_data=False, test_p=0.15, use_momentum=True, adaptative_eta=False)
+nn = MultilayerPerceptron(optimizer='Powell',eta=0.1, momentum=0.9, act_fun="logistic", split_data=False, test_p=0.15, use_momentum=True, adaptative_eta=False)
 
 #arq = [35, 3, 15, 13, 5, 2, 5, 13, 15, 3, 35]
 
