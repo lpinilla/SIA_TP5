@@ -46,7 +46,7 @@ nn.output_layer(35)
 
 #nn.print_layers()
 
-error = nn.train_minimizer(_input, _expected, epochs=2000)
+error = nn.train_minimizer(_input, _expected, epochs=500)
 
 #print(letras[1])
 #print(nn.predict(letras[1]))

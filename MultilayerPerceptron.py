@@ -80,7 +80,6 @@ class MultilayerPerceptron:
         # print(" h: " + str(l["h"]))
         # print(" e: " + str(l["e"]))
         print("n of nodes: ", str(len(l["v"])))
-        print("n of weights: ", str(len(l["w"])), "x", str(len(l["w"][0])))
 
     def print_layers(self):
         for i in range(len(layers)):
@@ -248,33 +247,54 @@ class MultilayerPerceptron:
     ##################### OPTIMIZACIONES ##########################
 
     def cost(self, flat_weights, test_data, test_exp):
-        self.unflatten_weights(flat_weights)
-        return calculate_error(test_data, test_exp)
+        #self.unflatten_weights(flat_weights)
+        self.rebuild_net(flat_weights)
+        error = self.calculate_error(test_data, test_exp)
+        print(error)
+        return error
 
     def train_minimizer(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
         flattened_weights = self.flatten_weights()
         res = minimize(fun=self.cost, x0=flattened_weights, args=(test_data, test_exp), method=self.optimizer)
-        #error = res.fun
-        #self.weights = self.unflatten_weights(res.x, len(layers["w"] + 1))
-        #print(self.optimizer)
-        res = minimize(self.calculate_error(test_data, test_exp), flattened_weights, method=self.optimizer)
         error = res.fun
-        self.weights = self.unflatten_weights(res.x)
+        self.rebuild_net(flattened_weights)
         return error
 
     def flatten_weights(self):
-        all_weights = self.flatten_matrix(layers[0]["w"])
-        for i in range(1, len(layers) - 1):
+        all_weights = self.flatten_matrix(layers[1]["w"])
+        for i in range(2, len(layers)):
             all_weights = np.append(all_weights, self.flatten_matrix(layers[i]["w"]))
-        #print("Final ------> " + str(all_weights))
         return all_weights
 
     def flatten_matrix(self, matrix):
         arr = np.array(matrix[0])
-        for i in range(1, len(matrix) - 1):
+        for i in range(1, len(matrix)):
             arr = np.append(arr, matrix[i])
         return arr
+
+    def rebuild_net(self, flat_weights):
+        offset = 0
+        for i in range(1, len(layers)):
+            l = layers[i]
+            l_1 = layers[i-1]
+            n = len(l["v"])
+            n_1 = len(l_1["v"])
+            aux = n * (n_1+1)
+            self.rebuild_weight_matrix(i, n, n_1 + 1, flat_weights[offset: offset + aux])
+            offset += aux
+
+    def rebuild_weight_matrix(self, layer_n, rows, columns, sub_flat_weights):
+        l = layers[layer_n]
+        w = []
+        r = 0
+        for i in range(rows):
+            w.append(sub_flat_weights[columns * i: columns * (i+1)])
+        l["w"] = w
+
+    def clear_weights(self):
+        for i in range(len(layers)):
+            layers[i]["w"] = []
 
     def unflatten_weights(self, flat_weights):
         aux = np.array([])
@@ -288,16 +308,6 @@ class MultilayerPerceptron:
             else:
                 np.append(aux, elem)
             index += 1
-
-    # def unflatten_weights(self, flat_weights):
-    #     unflat_weights = [None] * (len(self.weights))
-    #     index = 0
-    #     for i in range(len(self.weights)):
-    #         layer_shape = self.weights[i].shape
-    #         layer_items = layer_shape[0] * layer_shape[1]
-    #         unflat_weights[i] = flat_weights[index:index+layer_items].reshape(layer_shape)
-    #         index += layer_items
-    #     return unflat_weights
 
     def adapt_eta(self, i, err_history, error):
         if i < 2:
