@@ -66,9 +66,9 @@ class MultilayerPerceptron:
         l = layers[i]
         print("i: " + str(i))
         print(" w: " + str(l["w"]))
-        print(" v: " + str(l["v"]))
-        print(" h: " + str(l["h"]))
-        print(" e: " + str(l["e"]))
+        #print(" v: " + str(l["v"]))
+        #print(" h: " + str(l["h"]))
+        #print(" e: " + str(l["e"]))
         print("n of nodes: ", str(len(l["v"])))
         print("n of weights: ", str(len(l["w"])), "x", str(len(l["w"][0])))
 
@@ -276,12 +276,11 @@ class MultilayerPerceptron:
             print(error)
         return error
 
-
-    def flatten_weights(self, unflat_weights):
-        flat_weights = unflat_weights[0].flatten()
-        for i in range(1, len(unflat_weights)):
-            flat_weights = np.concatenate((flat_weights, unflat_weights[i].flatten()))
-        return flat_weights
+    def my_flaten(self, matrix):
+        arr = np.array(matrix[0])
+        for i in range(1, len(matrix)-1):
+            arr = np.append(arr, matrix[i])
+        return arr
 
     def unflatten_weights(self, flat_weights):
         unflat_weights = [None] * (len(self.weights))
