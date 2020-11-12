@@ -239,44 +239,20 @@ class MultilayerPerceptron:
 
     def train_minimizer(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
-        error = 1
-        error_min = 1
-        err_history = []
-        idxs = [i for i in range(len(inp_data))]
 
         flattened_weights = self.flatten_weights(self.weights)
         res = minimize(self.cost, flattened_weights, method=self.optimizer)
         error = res.fun
         self.weights = self.unflatten_weights(res.x)
-
-
-        for i in range(epochs):
-            order = random.sample(idxs, len(idxs))
-            for j in range(len(order)):
-                # agarrar un índice random para agarrar una muestra
-                idx = order[j]
-                _in = inp_data[idx]
-                _ex = inp_exp[idx]
-                # hacer el setup de la entrada
-                self.setup_entries(_in)
-                # hacer feed forward
-                self.feed_forward()
-                # calcular el delta error de la última capa
-                self.calculate_last_layer_error(_ex)
-                # retropropagar el error hacia las demás capas
-                self.back_propagation()
-                # ajustar los pesos
-                self.update_weights()
-                # calcular el error
-                error = self.calculate_error(test_data, test_exp)
-                if error < error_min:
-                    error_min = error
-                #actualizar el eta si se configuró así
-                self.eta += self.use_adapt_eta * self.adapt_eta(len(idxs) * i + j, err_history, error)
-            print(error)
         return error
 
-    def flatten_weights(self, matrix):
+    def flatten_weights(self):
+        all_weights = self.flatten_matrix(layers[0]["w"])
+        for i in range(1, len(layers)-1):
+            all_weights = np.append(all_weights, self.flatten_matrix(layers[i]["w"]))
+        return all_weights
+
+    def flatten_matrix(self, matrix):
         arr = np.array(matrix[0])
         for i in range(1, len(matrix)-1):
             arr = np.append(arr, matrix[i])
