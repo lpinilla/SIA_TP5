@@ -247,7 +247,6 @@ class MultilayerPerceptron:
     ##################### OPTIMIZACIONES ##########################
 
     def cost(self, flat_weights, test_data, test_exp):
-        #self.unflatten_weights(flat_weights)
         self.rebuild_net(flat_weights)
         error = self.calculate_error(test_data, test_exp)
         print(error)
@@ -256,7 +255,7 @@ class MultilayerPerceptron:
     def train_minimizer(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
         flattened_weights = self.flatten_weights()
-        res = minimize(fun=self.cost, x0=flattened_weights, args=(test_data, test_exp), method=self.optimizer)
+        res = minimize(fun=self.cost, x0=flattened_weights, args=(test_data, test_data), method=self.optimizer)
         error = res.fun
         self.rebuild_net(flattened_weights)
         return error
