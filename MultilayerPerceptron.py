@@ -59,10 +59,12 @@ deriv_functions = {
 
 class MultilayerPerceptron:
 
-    def __init__(self, latente_position, optimizer=None, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None,
+    def __init__(self, latente_position=None, original_input=None, optimizer=None, eta=None, momentum=None,
+                 act_fun=None, split_data=False, test_p=None,
                  use_momentum=False, adaptative_eta=False):
         global layers
         global max_steps
+        self.original_input = original_input
         self.latente_position = latente_position
         self.activation_values = []
         self.optimizer = optimizer
@@ -218,6 +220,13 @@ class MultilayerPerceptron:
              for i in range(len(test_exp))]
         ) / len(test_data)
 
+    def calculate_error_denoising(self, test_data, test_exp):
+        guesses = [self.guess(i, False) for i in test_data]
+        return np.sum(
+            [(np.subtract(self.original_input, guesses[i]) ** 2).sum() \
+             for i in range(len(test_exp))]
+        ) / len(test_data)
+
     def train(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
         error = 1
@@ -258,10 +267,25 @@ class MultilayerPerceptron:
         # print(error)
         return error
 
+    def cost_denoising(self, flat_weights, test_data, test_exp):
+        self.rebuild_net(flat_weights)
+        error = self.calculate_error_denoising(test_data, test_exp)
+        # print(error)
+        return error
+
     def train_minimizer(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
         flattened_weights = self.flatten_weights()
         res = minimize(fun=self.cost, x0=flattened_weights, args=(test_data, test_data), method=self.optimizer)
+        error = res.fun
+        self.rebuild_net(flattened_weights)
+        return error
+
+    def train_minimizer_denoising(self, inputs, expected, epochs):
+        inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
+        flattened_weights = self.flatten_weights()
+        res = minimize(fun=self.cost_denoising, x0=flattened_weights, args=(test_data, test_data),
+                       method=self.optimizer)
         error = res.fun
         self.rebuild_net(flattened_weights)
         return error
@@ -337,15 +361,15 @@ class MultilayerPerceptron:
 
         print(self.activation_values)
         for i in self.activation_values:
-                x.append(i[0])
-                y.append(i[1])
+            x.append(i[0])
+            y.append(i[1])
 
         print(x)
         print(y)
         plt.scatter(x, y)
 
-        labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "M", "N", "O", "P", "Q", "R", "S", "T", "U", 
-                  "V", "W", "X", "Y", "Z"] 
+        labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
+                  "V", "W", "X", "Y", "Z"]
         index = 0
         for x, y in zip(x, y):
             label = labels[index]
@@ -357,3 +381,13 @@ class MultilayerPerceptron:
                          ha='center')  # horizontal alignment can be left, right or center
             index += 1
         plt.show()
+
+    # modificar el patrón
+    def modify_pattern(self, pattern, n_of_modifications):
+        idx = [i for i in range(len(pattern))]
+        random.shuffle(idx)
+        sus = np.copy(pattern)
+        for i in range(1, n_of_modifications + 1):
+            sus[idx[i]] = sus[idx[i]] * 0
+        sus = np.column_stack(sus).T
+        return sus
