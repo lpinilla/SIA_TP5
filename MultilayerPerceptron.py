@@ -59,10 +59,11 @@ deriv_functions = {
 
 class MultilayerPerceptron:
 
-    def __init__(self, optimizer=None, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None,
+    def __init__(self, latente_position, optimizer=None, eta=None, momentum=None, act_fun=None, split_data=False, test_p=None,
                  use_momentum=False, adaptative_eta=False):
         global layers
         global max_steps
+        self.latente_position = latente_position
         self.activation_values = []
         self.optimizer = optimizer
         self.eta = eta
@@ -175,7 +176,7 @@ class MultilayerPerceptron:
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
             l["h"] = np.array(h)
             l["v"] = np.array([l["fn"](h[i], l["beta"]) for i in range(len(h))])
-            if predict and i == 2:
+            if predict and i == self.latente_position:
                 self.activation_values.append(l["v"])
 
     # función que propaga regresivamente el valor de error e de cada capa

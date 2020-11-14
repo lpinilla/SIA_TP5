@@ -20,8 +20,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73c424a7-2c0a-4b37-a170-7f45c61a9a53" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MultilayerPerceptron.py" beforeDir="false" afterPath="$PROJECT_DIR$/MultilayerPerceptron.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/autoencoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoencoder.py" afterDir="false" />
@@ -81,7 +79,7 @@
       <updated>1605017022907</updated>
       <workItem from="1605017024176" duration="22910000" />
       <workItem from="1605299489579" duration="2094000" />
-      <workItem from="1605303016182" duration="15880000" />
+      <workItem from="1605303016182" duration="16324000" />
     </task>
     <servers />
   </component>
