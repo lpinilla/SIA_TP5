@@ -2,6 +2,7 @@ import random
 import math
 import numpy as np
 from scipy.optimize import minimize
+import matplotlib.pyplot as plt
 
 layers = []
 max_steps = 1000
@@ -62,6 +63,7 @@ class MultilayerPerceptron:
                  use_momentum=False, adaptative_eta=False):
         global layers
         global max_steps
+        self.activation_values = []
         self.optimizer = optimizer
         self.eta = eta
         self.momentum = momentum
@@ -155,15 +157,16 @@ class MultilayerPerceptron:
         return np.array(input_arr), expected_arr, np.array(input_arr), expected_arr
 
     def predict(self, _input):
-        return self.guess(np.array(_input))
+        return self.guess(np.array(_input), True)
 
-    def guess(self, _input):
+    def guess(self, _input, predict):
         self.setup_entries(_input)
-        self.feed_forward()
+        self.feed_forward(predict)
         return layers[len(layers) - 1]["v"]
 
     # función para propagar secuencialmente los valores
-    def feed_forward(self):
+    def feed_forward(self, predict):
+        aux = []
         for i in range(1, len(layers)):
             l = layers[i]
             l_1 = layers[i - 1]
@@ -172,6 +175,8 @@ class MultilayerPerceptron:
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
             l["h"] = np.array(h)
             l["v"] = np.array([l["fn"](h[i], l["beta"]) for i in range(len(h))])
+            if predict and i == 2:
+                self.activation_values.append(l["v"])
 
     # función que propaga regresivamente el valor de error e de cada capa
     def back_propagation(self):
@@ -206,7 +211,7 @@ class MultilayerPerceptron:
         l["e"] = np.array([l["deriv"](l["h"][i], l["beta"]) * aux[i] for i in range(len(l["e"]))])
 
     def calculate_error(self, test_data, test_exp):
-        guesses = [self.guess(i) for i in test_data]
+        guesses = [self.guess(i, False) for i in test_data]
         return np.sum(
             [(np.subtract(test_exp[i], guesses[i]) ** 2).sum() \
              for i in range(len(test_exp))]
@@ -228,7 +233,7 @@ class MultilayerPerceptron:
                 # hacer el setup de la entrada
                 self.setup_entries(_in)
                 # hacer feed forward
-                self.feed_forward()
+                self.feed_forward(False)
                 # calcular el delta error de la última capa
                 self.calculate_last_layer_error(_ex)
                 # retropropagar el error hacia las demás capas
@@ -249,7 +254,7 @@ class MultilayerPerceptron:
     def cost(self, flat_weights, test_data, test_exp):
         self.rebuild_net(flat_weights)
         error = self.calculate_error(test_data, test_exp)
-        print(error)
+        # print(error)
         return error
 
     def train_minimizer(self, inputs, expected, epochs):
@@ -276,10 +281,10 @@ class MultilayerPerceptron:
         offset = 0
         for i in range(1, len(layers)):
             l = layers[i]
-            l_1 = layers[i-1]
+            l_1 = layers[i - 1]
             n = len(l["v"])
             n_1 = len(l_1["v"])
-            aux = n * (n_1+1)
+            aux = n * (n_1 + 1)
             self.rebuild_weight_matrix(i, n, n_1 + 1, flat_weights[offset: offset + aux])
             offset += aux
 
@@ -288,7 +293,7 @@ class MultilayerPerceptron:
         w = []
         r = 0
         for i in range(rows):
-            w.append(sub_flat_weights[columns * i: columns * (i+1)])
+            w.append(sub_flat_weights[columns * i: columns * (i + 1)])
         l["w"] = w
 
     def clear_weights(self):
@@ -301,9 +306,9 @@ class MultilayerPerceptron:
         index_base = 0
         for elem in flat_weights:
             if index % (len(flat_weights) / len(layers[index_base]["w"])) == 0:
-                    layers[index_base]["w"] = aux
-                    index_base += 1
-                    aux = np.array([])
+                layers[index_base]["w"] = aux
+                index_base += 1
+                aux = np.array([])
             else:
                 np.append(aux, elem)
             index += 1
@@ -323,3 +328,31 @@ class MultilayerPerceptron:
         if smaller:
             return 0.1
         return 0
+
+    def print_activation_values(self):
+
+        x = []
+        y = []
+
+        print(self.activation_values)
+        for i in self.activation_values:
+                x.append(i[0])
+                y.append(i[1])
+
+        print(x)
+        print(y)
+        plt.scatter(x, y)
+
+        labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "M", "N", "O", "P", "Q", "R", "S", "T", "U", 
+                  "V", "W", "X", "Y", "Z"] 
+        index = 0
+        for x, y in zip(x, y):
+            label = labels[index]
+
+            plt.annotate(label,  # this is the text
+                         (x, y),  # this is the point to label
+                         textcoords="offset points",  # how to position the text
+                         xytext=(0, 10),  # distance from text to points (x,y)
+                         ha='center')  # horizontal alignment can be left, right or center
+            index += 1
+        plt.show()
