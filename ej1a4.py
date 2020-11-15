@@ -16,8 +16,10 @@ def build_pca_weights(arr, n):
 # input
 letras = pickle.load(open('resources/letras.pickle', 'rb'))
 
-_input = letras[1:3]
-_expected = letras[1:3]
+_input = letras[1:5]
+_expected = letras[1:5]
+
+arq = [35, 7, 2, 7, 35]
 
 # nn = MultilayerPerceptron(optimizer='Powell',eta=0.001, momentum=0.9, act_fun="logistic", split_data=False, test_p=0.15, use_momentum=True, adaptative_eta=False)
 nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentum=0.9, act_fun="tanh", split_data=False, test_p=0.15,
@@ -35,7 +37,6 @@ nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentu
 
 # arq = [35, 17, 15, 3, 2, 3, 15, 17, 35]
 
-arq = [35, 7, 2, 7, 35]
 
 # nn.entry_layer(35)
 # nn.add_hidden_layer(17)
@@ -55,12 +56,15 @@ error = nn.train_minimizer(_input, _expected, epochs=500)
 
 print(error)
 
-# print(letras[1])
-# print(nn.predict(letras[1]))
 
-# for i in range(0, 15):
-#    print(str(_input[i]) + " -> " + str(nn.predict(_input[i])))
+new_letter = nn.predict(letras[1], modif=True)
+print("original ------> " + str(letras[1]))
+print("\n")
+print("Nueva ------> " + str(new_letter))
 
-for i in range(0, 2):
-    nn.predict(_input[i])
-nn.print_activation_values()
+
+
+
+# for i in range(0, 10):
+#     nn.predict(_input[i])
+# nn.print_activation_values()

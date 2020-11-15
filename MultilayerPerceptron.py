@@ -159,16 +159,16 @@ class MultilayerPerceptron:
                    expected_arr[split_idx:]
         return np.array(input_arr), expected_arr, np.array(input_arr), expected_arr
 
-    def predict(self, _input):
-        return self.guess(np.array(_input), True)
+    def predict(self, _input, modif=False):
+        return self.guess(np.array(_input), True, modif)
 
-    def guess(self, _input, predict):
+    def guess(self, _input, predict, modif):
         self.setup_entries(_input)
-        self.feed_forward(predict)
+        self.feed_forward(predict, modif)
         return layers[len(layers) - 1]["v"]
 
     # función para propagar secuencialmente los valores
-    def feed_forward(self, predict):
+    def feed_forward(self, predict, modif):
         aux = []
         for i in range(1, len(layers)):
             l = layers[i]
@@ -179,6 +179,12 @@ class MultilayerPerceptron:
             l["h"] = np.array(h)
             l["v"] = np.array([l["fn"](h[i], l["beta"]) for i in range(len(h))])
             if predict and i == self.latente_position:
+                if modif:
+                    aux = l["v"]
+                    print(aux)
+                    aux = [l["v"][0] * (-1), l["v"][1] * (-1)]
+                    l["v"] = aux
+                    print(l["v"])
                 self.activation_values.append(l["v"])
 
     # función que propaga regresivamente el valor de error e de cada capa
@@ -214,7 +220,7 @@ class MultilayerPerceptron:
         l["e"] = np.array([l["deriv"](l["h"][i], l["beta"]) * aux[i] for i in range(len(l["e"]))])
 
     def calculate_error(self, test_data, test_exp):
-        guesses = [self.guess(i, False) for i in test_data]
+        guesses = [self.guess(i, False, False) for i in test_data]
         return np.sum(
             [(np.subtract(test_exp[i], guesses[i]) ** 2).sum() \
              for i in range(len(test_exp))]
@@ -243,7 +249,7 @@ class MultilayerPerceptron:
                 # hacer el setup de la entrada
                 self.setup_entries(_in)
                 # hacer feed forward
-                self.feed_forward(False)
+                self.feed_forward(False, False)
                 # calcular el delta error de la última capa
                 self.calculate_last_layer_error(_ex)
                 # retropropagar el error hacia las demás capas
@@ -258,7 +264,6 @@ class MultilayerPerceptron:
                 self.eta += self.use_adapt_eta * self.adapt_eta(len(idxs) * i + j, err_history, error)
             print(error)
         return error
-
 
     def train_denoising(self, inputs, expected, epochs):
         inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
@@ -276,7 +281,7 @@ class MultilayerPerceptron:
                 # hacer el setup de la entrada
                 self.setup_entries(_in)
                 # hacer feed forward
-                self.feed_forward(False)
+                self.feed_forward(False, False)
                 # calcular el delta error de la última capa
                 self.calculate_last_layer_error(_ex)
                 # retropropagar el error hacia las demás capas
@@ -401,7 +406,7 @@ class MultilayerPerceptron:
         print(y)
         plt.scatter(x, y)
 
-        labels = ["space","!", "\"", "#", "$", "%", "&", "\'", "(", ")", "*", "+", "´", "-", ".", "/", "0", "1", "S", "T", "U",
+        labels = ["space", "!", "\"", "#", "$", "%", "&", "\'", "(", ")", "*", "+", "´", "-", ".", "/", "0", "1",
                   "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?"]
         index = 1
         for x, y in zip(x, y):
