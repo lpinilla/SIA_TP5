@@ -259,6 +259,39 @@ class MultilayerPerceptron:
             print(error)
         return error
 
+
+    def train_denoising(self, inputs, expected, epochs):
+        inp_data, inp_exp, test_data, test_exp = self.process_input(inputs, expected)
+        error = 1
+        error_min = 1
+        err_history = []
+        idxs = [i for i in range(len(inp_data))]
+        for i in range(epochs):
+            order = random.sample(idxs, len(idxs))
+            for j in range(len(order)):
+                # agarrar un índice random para agarrar una muestra
+                idx = order[j]
+                _in = inp_data[idx]
+                _ex = inp_exp[idx]
+                # hacer el setup de la entrada
+                self.setup_entries(_in)
+                # hacer feed forward
+                self.feed_forward(False)
+                # calcular el delta error de la última capa
+                self.calculate_last_layer_error(_ex)
+                # retropropagar el error hacia las demás capas
+                self.back_propagation()
+                # ajustar los pesos
+                self.update_weights()
+                # calcular el error
+                error = self.calculate_error_denoising(test_data, test_exp)
+                if error < error_min:
+                    error_min = error
+                # actualizar el eta si se configuró así
+                self.eta += self.use_adapt_eta * self.adapt_eta(len(idxs) * i + j, err_history, error)
+            # print(error)
+        return error
+
     ##################### OPTIMIZACIONES ##########################
 
     def cost(self, flat_weights, test_data, test_exp):
@@ -368,9 +401,9 @@ class MultilayerPerceptron:
         print(y)
         plt.scatter(x, y)
 
-        labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
-                  "V", "W", "X", "Y", "Z"]
-        index = 0
+        labels = ["space","!", "\"", "#", "$", "%", "&", "\'", "(", ")", "*", "+", "´", "-", ".", "/", "0", "1", "S", "T", "U",
+                  "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?"]
+        index = 1
         for x, y in zip(x, y):
             label = labels[index]
 

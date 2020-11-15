@@ -27,6 +27,8 @@ print("modify--------> " + str(denoising_letters))
 
 error = nn.train_minimizer_denoising(denoising_letters, _expected, epochs=500)
 
+# error = nn.train_denoising(denoising_letters, _expected, epochs=500)
+
 print(error)
 
 # for i in range(0, 15):

@@ -20,7 +20,7 @@ _input = letras[1:11]
 _expected = letras[1:11]
 
 # nn = MultilayerPerceptron(optimizer='Powell',eta=0.001, momentum=0.9, act_fun="logistic", split_data=False, test_p=0.15, use_momentum=True, adaptative_eta=False)
-nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentum=0.9, act_fun="logistic", split_data=False, test_p=0.15,
+nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentum=0.9, act_fun="tanh", split_data=False, test_p=0.15,
                           use_momentum=True, adaptative_eta=False)
 
 # arq = [35, 3, 15, 13, 5, 2, 5, 13, 15, 3, 35]
