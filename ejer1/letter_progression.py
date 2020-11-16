@@ -18,6 +18,20 @@ def graficar_curvas(points):
         ax.scatter(i[0,:], i[1,:])
     plt.show()
 
+def parse_output(arr):
+    return [0 if abs(arr[i]) <= 0.1 else 1 for i in range(len(arr))]
+
+def print_letter(letter):
+    for i in range(7):
+        fila = ""
+        for j in range(5):
+            if letter[i * 5 + j] == 1:
+                fila = fila + " *"
+            else:
+                fila += "  "
+        print(fila)
+
+
 letras = pickle.load(open('../resources/letras.pickle', 'rb'))
 letras_etiquetas = ["space", "!", "\"", "#", "$", "%", "&", "\'", "(", ")", "*", "+", "´", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?"]
 trained_weights = pickle.load(open('trained_weights.pickle','rb'))
@@ -47,28 +61,25 @@ p1 = nn.view_latent_coding(letras[pesos_index])
 p2 = nn.view_latent_coding(letras[ampersand_index])
 
 points = curves_between_points(p1, p2, 10, 20)
-#graficar_curvas(curves_between_points(p1, p2, 1, 20))
+#graficar_curvas(curves_between_points(p1, p2, 10, 20))
 
 results = []
 #por cada curva
 for i in range(len(points)):
+    curva = []
     #por cada punto de la curva
     for j in range(len(points[i][0])):
         point = [points[i][0][j], points[i][1][j]]
-        results.append(nn.generate(point))
+        curva.append(nn.generate(point))
+    results.append(curva)
 
-def parse_output(arr):
-    return [0 if abs(arr[i]) <= 0.1 else 1 for i in range(len(arr))]
+for r in results[0]:
+    print_letter(parse_output(r))
+    print("##############################")
 
-def print_letter(letter):
-    for i in range(7):
-        print(letter[5 * i:5 * (i+1)])
-
-#print_letter(letras[pesos_index])
-
-print(results[0])
-print("##############################")
-print(parse_output(results[0]))
-print("##############################")
-print_letter(parse_output(results[0]))
+#print(results[0])
+#print("##############################")
+#print(parse_output(results[0]))
+#print("##############################")
+#print_letter(parse_output(results[0]))
 
