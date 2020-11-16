@@ -4,15 +4,6 @@ import random
 import math
 from MultilayerPerceptron import MultilayerPerceptron
 
-
-def build_pca_weights(arr, n):
-    aux = np.array(arr)
-    bias = 1 - aux.sum()
-    aux = np.append(aux, bias)
-    _l = [aux for i in range(n)]
-    return _l
-
-
 # input
 letras = pickle.load(open('resources/letras.pickle', 'rb'))
 
@@ -21,7 +12,6 @@ _expected = letras[1:5]
 
 arq = [35, 7, 2, 7, 35]
 
-# nn = MultilayerPerceptron(optimizer='Powell',eta=0.001, momentum=0.9, act_fun="logistic", split_data=False, test_p=0.15, use_momentum=True, adaptative_eta=False)
 nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentum=0.9, act_fun="tanh", split_data=False, test_p=0.15,
                           use_momentum=True, adaptative_eta=False)
 
