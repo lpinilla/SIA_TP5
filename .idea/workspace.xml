@@ -20,10 +20,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73c424a7-2c0a-4b37-a170-7f45c61a9a53" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ej1a4.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MultilayerPerceptron.py" beforeDir="false" afterPath="$PROJECT_DIR$/MultilayerPerceptron.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/autoencoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoencoder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ej1a4.py" beforeDir="false" afterPath="$PROJECT_DIR$/ej1a4.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ej1b.py" beforeDir="false" afterPath="$PROJECT_DIR$/ej1b.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +88,7 @@
       <workItem from="1605017024176" duration="22910000" />
       <workItem from="1605299489579" duration="2094000" />
       <workItem from="1605303016182" duration="16892000" />
-      <workItem from="1605390285093" duration="12541000" />
+      <workItem from="1605390285093" duration="14913000" />
     </task>
     <servers />
   </component>

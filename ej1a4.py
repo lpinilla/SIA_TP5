@@ -60,7 +60,7 @@ print(error)
 new_letter = nn.predict(letras[1], modif=True)
 print("original ------> " + str(letras[1]))
 print("\n")
-print("Nueva ------> " + str(new_letter))
+print("Nueva ------> " + str(nn.activate(new_letter)))
 
 
 

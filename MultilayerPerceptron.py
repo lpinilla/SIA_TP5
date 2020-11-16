@@ -227,7 +227,7 @@ class MultilayerPerceptron:
         ) / len(test_data)
 
     def calculate_error_denoising(self, test_data, test_exp):
-        guesses = [self.guess(i, False) for i in test_data]
+        guesses = [self.guess(i, False, False) for i in test_data]
         return np.sum(
             [(np.subtract(self.original_input, guesses[i]) ** 2).sum() \
              for i in range(len(test_exp))]
@@ -429,3 +429,15 @@ class MultilayerPerceptron:
             sus[idx[i]] = sus[idx[i]] * 0
         sus = np.column_stack(sus).T
         return sus
+    
+    def activate(self, input):
+        aux = input
+        index = 0
+        for elem in input:
+            if elem >= 0:
+                aux[index] = 1
+            else:
+                aux[index] = 0
+            index += 1
+        return aux
+
