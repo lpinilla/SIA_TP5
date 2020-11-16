@@ -21,10 +21,6 @@ nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentu
 
 # arq = [35, 15, 3, 2, 3, 15, 35]
 
-# arq = [35, 17, 10, 5, 2, 5, 10, 17, 35] #arq de brian
-
-# arq = [35, 2, 35]
-
 # arq = [35, 17, 15, 3, 2, 3, 15, 17, 35]
 
 
@@ -41,8 +37,7 @@ nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentu
 nn.create_arq(arq)
 
 # nn.print_layers()
-
-error = nn.train_minimizer(_input, _expected, epochs=500)
+#error = nn.train_minimizer(_input, _expected, epochs=500)
 
 print(error)
 
