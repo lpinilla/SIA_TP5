@@ -227,10 +227,9 @@ class MultilayerPerceptron:
         ) / len(test_data)
 
     def calculate_error_denoising(self, test_data, test_exp):
-        guesses = [self.guess(i, False, False) for i in test_data]
+        guesses = [self.guess(test_data, False, False)]
         return np.sum(
-            [(np.subtract(self.original_input, guesses[i]) ** 2).sum() \
-             for i in range(len(test_exp))]
+            [(np.subtract(self.original_input, guesses[0]) ** 2).sum()]
         ) / len(test_data)
 
     def train(self, inputs, expected, epochs):
@@ -429,7 +428,7 @@ class MultilayerPerceptron:
             sus[idx[i]] = sus[idx[i]] * 0
         sus = np.column_stack(sus).T
         return sus
-    
+
     def activate(self, input):
         aux = input
         index = 0
@@ -444,33 +443,33 @@ class MultilayerPerceptron:
     ##################### GENERACION ##########################
 
     def decoder_feed_forward(self):
-        for i in range(int(len(layers)/2)+1, len(layers)):
+        for i in range(int(len(layers) / 2) + 1, len(layers)):
             l = layers[i]
             l_1 = layers[i - 1]
             inp = np.copy(l_1["v"])
             inp_bias = (np.append(inp, 1))
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
             l["h"] = np.array(h)
-            l["v"] =np.array([l["fn"](h[i],l["beta"]) for i in range(len(h))])
+            l["v"] = np.array([l["fn"](h[i], l["beta"]) for i in range(len(h))])
 
     def view_latent_coding(self, _input):
         self.setup_entries(_input)
-        for i in range(1, int(len(layers)/2)+1):
+        for i in range(1, int(len(layers) / 2) + 1):
             l = layers[i]
             l_1 = layers[i - 1]
             inp = np.copy(l_1["v"])
             inp_bias = (np.append(inp, 1))
             h = [np.dot(l["w"][j], inp_bias) for j in range(len(l["h"]))]
             l["h"] = np.array(h)
-            l["v"] =np.array([l["fn"](h[i],l["beta"]) for i in range(len(h))])
-        return layers[int(len(layers)/2)]["v"]
+            l["v"] = np.array([l["fn"](h[i], l["beta"]) for i in range(len(h))])
+        return layers[int(len(layers) / 2)]["v"]
 
     def generate(self, latent_input):
-        #agarramos la capa latente
-        latent = layers[int(len(layers)/2)]
-        #seteamos su estado de activacion como el input
+        # agarramos la capa latente
+        latent = layers[int(len(layers) / 2)]
+        # seteamos su estado de activacion como el input
         np_input = np.array(latent_input)
         latent["v"] = np_input
-        #hacemos feed forward desde la capa latente en adelante
+        # hacemos feed forward desde la capa latente en adelante
         self.decoder_feed_forward()
         return layers[len(layers) - 1]["v"]

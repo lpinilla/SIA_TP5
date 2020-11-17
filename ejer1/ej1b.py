@@ -3,40 +3,77 @@ import pickle
 import random
 import math
 from MultilayerPerceptron import MultilayerPerceptron
+from tqdm import tqdm
+
+
+
+
+def parse_output(arr):
+    return [0 if abs(arr[i]) <= 0.1 else 1 for i in range(len(arr))]
+
+def print_letter(letter):
+    for i in range(7):
+        fila = ""
+        for j in range(5):
+            if letter[i * 5 + j] == 1:
+                fila = fila + " *"
+            else:
+                fila += "  "
+        print(fila)
+
 
 # input
-letras = pickle.load(open('resources/letras.pickle', 'rb'))
+letras = pickle.load(open('../resources/letras.pickle', 'rb'))
 
-_input = letras[1:2]
-_expected = letras[1:2]
-arq = [35, 15, 7, 4, 2, 4, 7, 15, 35]
+_input = letras[1]
+_expected = letras[1]
+
 
 
 nn = MultilayerPerceptron(latente_position=4, original_input=_input,optimizer='BFGS', eta=0.1, momentum=0.9, act_fun="tanh", split_data=False, test_p=0.15,
                           use_momentum=True, adaptative_eta=False)
-nn.create_arq(arq)
+nn.entry_layer(35)
+nn.add_hidden_layer(17, beta=0.9)
+nn.add_hidden_layer(15, beta=0.7)
+nn.add_hidden_layer(3 , beta=0.6)
+nn.add_hidden_layer(2)
+nn.add_hidden_layer(3 , beta=0.6)
+nn.add_hidden_layer(15, beta=0.7)
+nn.add_hidden_layer(17, beta=0.9)
+nn.output_layer(35)
 
 denoising_letters = []
-for i in _input:
-    S = nn.modify_pattern(i, 2)
-    denoising_letters.append(np.copy(S).tolist())
+S = nn.modify_pattern(_input, 7)
+denoising_letters.append(np.copy(S))
+# for i in tqdm(range(0, 30)):
+#     S = nn.modify_pattern(_input, 2)
+#     aux = np.array(np.copy(S)).flatten().tolist()
+#     error = nn.train_denoising(aux, _expected, epochs=10)
 
-print("input---------> " + str(_input))
+
+print("input")
+print(_input)
+print_letter(parse_output(_input))
 print()
 # for elem in denoising_letters:
-print("modify--------> " + str(denoising_letters))
+aux = np.array(denoising_letters).flatten().tolist()
+print("modify")
+print(aux)
+print_letter(parse_output(aux))
 
-error = nn.train_minimizer_denoising(denoising_letters, _expected, epochs=500)
+trained_weights = pickle.load(open('trained_weights.pickle','rb'))
+nn.rebuild_net(trained_weights)
+
+
 
 # error = nn.train_denoising(denoising_letters, _expected, epochs=500)
-
-print(error)
-
-# for i in range(0, 15):
-#    print(str(_input[i]) + " -> " + str(nn.predict(_input[i])))
-
-for i in range(0, 1):
-    print(nn.activate(nn.predict(_input[i])))
+# error = nn.train_minimizer_denoising(aux, _expected)
 
 
+res = nn.predict(_input)
+print("result")
+print(res)
+
+print_letter(parse_output(res))
+print("##############################")
 
