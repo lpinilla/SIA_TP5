@@ -1,5 +1,6 @@
 from MultilayerPerceptron import MultilayerPerceptron
 import pickle
+from sklearn.preprocessing import StandardScaler
 
 #input
 samples = pickle.load(open('sin_samples.pickle', 'rb'))
