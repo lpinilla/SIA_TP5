@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import pickle
+import matplotlib.pyplot as plt
 
 #links útils
 
@@ -26,5 +27,16 @@ for i in betas:
     _x = i * x
     samples.append(np.array([math.sin(j) for j in _x]))
 
-f = open('sin_samples.pickle', 'wb')
-pickle.dump(samples, f)
+#f = open('sin_samples.pickle', 'wb')
+#pickle.dump(samples, f)
+
+x_plot = [x for i in range(len(samples))]
+
+#graficar los puntos
+fig, ax = plt.subplots()
+ax.plot(data, '-')
+
+ax.grid(True)
+
+plt.show()
+

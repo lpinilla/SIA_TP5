@@ -14,8 +14,7 @@ _expected = letras
 
 nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentum=0.9, act_fun="tanh", split_data=False, test_p=0.15, use_momentum=False, adaptative_eta=False)
 
-#arq = [35, 18, 13, 5, 2, 5, 13, 18, 35] #la mejor
-# arq = [35, 17, 15, 3, 2, 3, 15, 17, 35]
+#arq = [35, 17, 15, 3, 2, 3, 15, 17, 35]
 #arq = [35, 7, 2, 7, 35]
 #nn.create_arq(arq)
 

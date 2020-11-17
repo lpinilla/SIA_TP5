@@ -4,6 +4,9 @@ import pickle
 import bezier
 from MultilayerPerceptron import MultilayerPerceptron
 
+
+letras_etiquetas = ["space", "!", "\"", "#", "$", "%", "&", "\'", "(", ")", "*", "+", "´", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?"]
+
 def curves_between_points(p1, p2, n_curves, samples):
     nodes = [np.asfortranarray([[p1[0], (p2[0] + p1[0]) / 2, p2[0]], [p1[1], (p2[1]+p1[1])/2 + i/30, p2[1]]]) for i in range(1,n_curves+1)]
     curves = [bezier.Curve(i, degree=2) for i in nodes]
@@ -16,6 +19,9 @@ def graficar_curvas(points):
     ax.grid(True)
     for i in points:
         ax.scatter(i[0,:], i[1,:])
+    #agregar las etiquetas de $ y &
+    ax.annotate('$', (points[0][0][0], points[0][1][0]))
+    ax.annotate('&', (points[0][0][-1], points[0][1][-1]))
     plt.show()
 
 def parse_output(arr):
@@ -33,7 +39,6 @@ def print_letter(letter):
 
 
 letras = pickle.load(open('../resources/letras.pickle', 'rb'))
-letras_etiquetas = ["space", "!", "\"", "#", "$", "%", "&", "\'", "(", ")", "*", "+", "´", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?"]
 trained_weights = pickle.load(open('trained_weights.pickle','rb'))
 
 nn = MultilayerPerceptron(latente_position=2, optimizer='BFGS', eta=0.1, momentum=0.9, act_fun="tanh", split_data=False, test_p=0.15, use_momentum=False, adaptative_eta=False)
@@ -62,6 +67,8 @@ p2 = nn.view_latent_coding(letras[ampersand_index])
 
 points = curves_between_points(p1, p2, 10, 20)
 #graficar_curvas(curves_between_points(p1, p2, 10, 20))
+#exit(0)
+
 
 results = []
 #por cada curva
