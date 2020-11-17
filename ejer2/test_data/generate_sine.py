@@ -21,6 +21,8 @@ nn.rebuild_net(trained_weights)
 #tomar muestra del código latente de algún dato
 #coding_0 = nn.view_latent_coding(samples[0])
 #print(coding_0)
+
+
 #codificación de sample 0
 #[ 0.99264605 -0.88249352  0.96457358  0.9994266  -0.92983281]
 
